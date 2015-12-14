@@ -18,10 +18,11 @@ class tab_bar_controller: UITabBarController
                 me_controller = me_view_controller()
                 self.viewControllers = [events_navigation_controller, me_controller]
                 
+                let tab_images = ["Pinwheel","Fencing"]
                 for (index, tab_item) in self.tabBar.items!.enumerate()
                 {
                         tab_item.title = tab_names[index]
-                        tab_item.image = UIImage(named: tab_names[index])
+                        tab_item.image = UIImage(named: tab_images[index])
                 }
         }
 }

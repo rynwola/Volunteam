@@ -110,6 +110,8 @@ class sign_up_view_controller: UIViewController, query_delegate
                 confirm_password_field.frame.origin.y = password_field.frame.y_end + post_padding
                 self.view.addSubview(confirm_password_field)
                 
+                let sign_up_border = UIView(frame: CGRect.zero(self.view.frame.size.width, border_thin_length))
+                sign_up_border.backgroundColor = UIColor.warm_blue()
                 
                 sign_up_button = UIButton(frame: CGRectMake(0, self.view.frame.size.height - flat_height, self.view.frame.size.width, flat_height))
                 sign_up_button.backgroundColor = UIColor.soft_blue()
@@ -117,6 +119,7 @@ class sign_up_view_controller: UIViewController, query_delegate
                 sign_up_button.setTitleColor(UIColor.whiteColor(), forState: UIControlState.Normal)
                 sign_up_button.addTarget(self, action: "sign_up", forControlEvents: UIControlEvents.TouchUpInside)
                 self.view.addSubview(sign_up_button)
+                sign_up_button.addSubview(sign_up_border)
                 
                 signing_up = true
         }

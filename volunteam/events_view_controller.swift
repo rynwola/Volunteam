@@ -94,6 +94,11 @@ class events_table_view: rmw_table_view, UITableViewDataSource
                 super.init(frame: frame, with_search_bar: true)
                 self.registerClass(event_cell.classForCoder(), forCellReuseIdentifier: event_cell_identifier)
                 self.dataSource = self
+                if self.search_bar != nil
+                {
+                        
+                        self.search_bar!.backgroundColor = UIColor.clearColor()
+                }
         }
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")

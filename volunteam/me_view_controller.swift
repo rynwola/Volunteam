@@ -4,19 +4,19 @@ class rmw_user
 {
         static var shared_instance = rmw_user()
         var id: Int!
-        var first_name: String!
-        var last_name: String!
-        var image_url: String!
-        var events: [rmw_event]!
-        var hours_goal: Int!
-        var hours_achieved: Int!
+        var first_name: String = "John"
+        var last_name: String = "Doe"
+        var image_url: String?
+        var events = [rmw_event]()
+        var hours_goal: Int = 0
+        var hours_achieved: Int = 0
         var signed_in: Bool
         {
                 return self.id != nil && self.id != 0
         }
         var percent: CGFloat
                 {
-                return CGFloat(hours_achieved) / CGFloat(hours_goal)
+                        return hours_goal == 0 ? 0 : CGFloat(hours_achieved) / CGFloat(hours_goal)
         }
         
         init()
@@ -34,15 +34,21 @@ class rmw_user
                 {
                         return nil
                 }
-                if let first_name = raw["String"] as? String
+                if let first_name = raw["first_name"] as? String
                 {
                         self.first_name = first_name
                 }
-                if let last_name = raw["String"] as? String
+                if let last_name = raw["last_name"] as? String
                 {
                         self.last_name = last_name
                 }
                 NSUserDefaults.standardUserDefaults().setObject(raw, forKey: "user_info")
+        }
+        
+        func reset()
+        {
+                self.id = 0
+                NSUserDefaults.standardUserDefaults().setObject(nil, forKey: "user_info")
         }
 
 }
@@ -60,37 +66,55 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
         override func viewDidLoad()
         {
                 super.viewDidLoad()
-                self.view.backgroundColor = UIColor.white_smoke()
+                self.view.backgroundColor = UIColor.light_gray()
                 
                 image_view = UIImageView(frame: CGRectMake(padding, padding + status_bar_height(), 100, 100))
                 image_view.backgroundColor = UIColor.medium_gray()
                 image_view.image = UIImage(named: "space")
                 image_view.contentMode = UIViewContentMode.ScaleAspectFill
-                image_view.make_circle()
+                image_view.layer.cornerRadius = 4
+                image_view.clipsToBounds = true
                 self.view.addSubview(image_view)
                 
                 name_label = rmw_label(frame: CGRectMake(image_view.frame.x_end + padding, image_view.frame.origin.y, 100, 100))
-                name_label.text = "Joe Shmo"
+                name_label.text = rmw_user.shared_instance.first_name + " " + rmw_user.shared_instance.last_name
+                name_label.textColor = UIColor.dark_gray()
+                name_label.font = UIFont.systemFontOfSize(18)
                 self.view.addSubview(name_label)
                 
                 goal_view = rmw_goal_view(frame: CGRectMake(padding, image_view.frame.y_end + padding, self.view.frame.size.width - padding * 2, 40))
-                goal_view.update(0.3)
+                goal_view.update(rmw_user.shared_instance.percent)
                 self.view.addSubview(goal_view)
                 
-                progress_label = rmw_label(frame: goal_view.frame)
-                progress_label.frame.origin.x = goal_view.frame.y_end + padding
-                progress_label.text = "30 / 100 hours"
-                progress_label.textColor = UIColor.blackColor()
-                self.view.addSubview(progress_label)
+                progress_label = rmw_label(frame: CGRectMake(padding, padding, self.goal_view.frame.size.width - padding * 2, goal_view.frame.size.height - padding * 2))
+                progress_label.textColor = UIColor.dark_gray()
+                progress_label.text = String(rmw_user.shared_instance.hours_achieved) + " / " + String(rmw_user.shared_instance.hours_goal) + " hours"
+                if rmw_user.shared_instance.percent > 0.5
+                {
+                        progress_label.textAlignment = .Right
+                }
+                else
+                {
+                        progress_label.textAlignment = .Left
+                }
+                self.goal_view.addSubview(progress_label)
                 
-                table_view = events_table_view(frame: CGRectMake(0, self.goal_view.frame.y_end, self.view.frame.size.width, self.view.frame.size.height - (goal_view.frame.y_end + flat_height + self.tabBarController!.tabBar.frame.size.height)), with_search_bar: true, event_delegate: self)
+                table_view = events_table_view(frame: CGRectMake(0, self.goal_view.frame.y_end + post_padding, self.view.frame.size.width, self.view.frame.size.height - (goal_view.frame.y_end + flat_height + self.tabBarController!.tabBar.frame.size.height + post_padding)), with_search_bar: true, event_delegate: self)
+                table_view.backgroundColor = UIColor.whiteColor()
                 self.view.addSubview(table_view)
                 
+                var border = UIView(frame: CGRectMake(table_view.frame.origin.x, table_view.frame.origin.y, self.view.frame.size.width, border_thin_length))
+                border.backgroundColor = UIColor.border_gray()
+                self.view.addSubview(border)
+                
+                let sign_out_top_border = UIView(frame: CGRect.zero(self.view.frame.size.width, border_thin_length))
+                sign_out_top_border.backgroundColor = UIColor.transparent_black(0.5)
                 sign_out_button = UIButton(frame: CGRectMake(0, table_view.frame.y_end, self.view.frame.size.width, flat_height))
                 sign_out_button.backgroundColor = UIColor.alizarin()
                 sign_out_button.setTitle("sign out", forState: UIControlState.Normal)
                 sign_out_button.setTitleColor(UIColor.whiteColor(), forState: UIControlState.Normal)
                 sign_out_button.addTarget(self, action: "sign_out", forControlEvents: UIControlEvents.TouchUpInside)
+                sign_out_button.addSubview(sign_out_top_border)
                 self.view.addSubview(sign_out_button)
 
                 
@@ -98,6 +122,14 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
         
         func sign_out()
         {
+                run_on_background_thread(
+                {
+                        rmw_user.shared_instance.reset()
+                        run_on_main_thread(
+                                {
+                                        (UIApplication.sharedApplication().delegate as! AppDelegate).assign_root_as_tab()
+                        })
+                })
                 print("sign out")
         }
         
@@ -123,12 +155,14 @@ class rmw_goal_view: UIView
         override init(frame: CGRect)
         {
                 super.init(frame: frame)
-                self.backgroundColor = UIColor.concrete()
+                self.backgroundColor = UIColor.white_smoke()
                 self.layer.cornerRadius = self.frame.size.height/2
                 inside_view = UIView(frame: CGRect.zero(self.frame.size.width, self.frame.size.height))
                 inside_view.backgroundColor = UIColor.soft_blue()
                 self.addSubview(inside_view)
                 self.clipsToBounds = true
+                self.layer.borderColor = UIColor.border_gray().CGColor
+                self.layer.borderWidth = 1
         }
         
         func update(percent: CGFloat)

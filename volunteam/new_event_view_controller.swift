@@ -229,8 +229,9 @@ class new_event_view_controller: UIViewController, query_delegate
                 main_view.submit_button.addTarget(self, action: "create_event", forControlEvents: UIControlEvents.TouchUpInside)
                 self.view.addSubview(main_view)
                 
-                back_button = UIButton(frame: CGRectMake(padding, 30, 100, 30))
-                back_button.setTitle("cancel", forState: UIControlState.Normal)
+                back_button = UIButton(frame: CGRectMake(self.view.frame.size.width - (20 + padding), padding + status_bar_height(), 20, 20))
+                back_button.setTitle("x", forState: UIControlState.Normal)
+                back_button.setTitleColor(UIColor.tony_gray(), forState: UIControlState.Normal)
                 back_button.addTarget(self, action: "pop", forControlEvents: UIControlEvents.TouchUpInside)
                 self.view.addSubview(back_button)
         }
@@ -277,7 +278,6 @@ class new_event_view_controller: UIViewController, query_delegate
         
         func manage_response(response_query: query, _ response: Dictionary<String, AnyObject>)
         {
-                print("SUCCCCCCESSSSSSS: \(response)")
                 self.pop()
         }
         
@@ -318,7 +318,7 @@ enum event_category
 }
 class new_event_view: UIScrollView, text_delegate
 {
-        var image_view: UIImageView!
+        //var image_view: UIImageView!
         
         //name of company/org
         var company_name_field: rmw_pop_up_text_field!
@@ -357,13 +357,9 @@ class new_event_view: UIScrollView, text_delegate
         override init(frame: CGRect)
         {
                 super.init(frame: frame)
+                self.backgroundColor = UIColor.whiteColor()
                 
-                image_view = UIImageView(frame: CGRect.zero(self.frame.size.width, self.frame.size.height/(golden_ratio * golden_ratio)))
-                image_view.contentMode = UIViewContentMode.ScaleAspectFill
-                image_view.image = UIImage(named: "space")
-                self.addSubview(image_view)
-                
-                company_name_field = rmw_pop_up_text_field(frame: CGRectMake(padding, image_view.frame.y_end + padding, self.frame.size.width - padding * 2, field_height), pop_up_string: "company name")
+                company_name_field = rmw_pop_up_text_field(frame: CGRectMake(padding, status_bar_height() + padding, self.frame.size.width - padding * 2, field_height), pop_up_string: "company name")
                 company_name_field.field.set_placeholder("company name")
                 self.addSubview(company_name_field)
                 
@@ -378,13 +374,14 @@ class new_event_view: UIScrollView, text_delegate
                 description_field.layer.cornerRadius = 4
                 description_field.clipsToBounds = true
                 description_field.layer.borderWidth = 1
-                description_field.layer.borderColor = UIColor.soft_blue().CGColor
+                description_field.layer.borderColor = UIColor.border_gray().CGColor
                 description_field.character_limit = 500
                 self.addSubview(description_field)
                 
                 character_count_label = rmw_label(frame: CGRectMake(self.description_field.frame.size.width-40, post_padding, 36, 36))
-                character_count_label.textColor = UIColor.soft_blue()
+                character_count_label.textColor = UIColor.medium_gray()
                 character_count_label.text = "500"
+                character_count_label.align_above(description_field.frame.size.height)
                 self.description_field.addSubview(character_count_label)
                 
                 location_field = rmw_pop_up_text_field(frame: CGRectMake(padding, description_field.frame.y_end + padding, self.frame.size.width - padding * 2, field_height), pop_up_string: "street address")
