@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Alamofire
 
 class event_preview_view: UIView
 {
@@ -70,6 +71,19 @@ class event_preview_view: UIView
                 message_label.frame.origin.y = title_label.frame.y_end + post_padding
                 start_date_label.text = "starts " + event.start_date
                 ratio_view.update(event.current_volunteer_count, quota: event.wanted_volunteer_count)
+                self.update_image(event.image_url)
+        }
+        
+        func update_image(url: String)
+        {
+                if let url = rmw_user.shared_instance.image_url
+                {
+                        Alamofire.request(.GET, url).response() {
+                                (_, _, data, _) in
+                                let image = UIImage(data: data!)
+                                self.image_view.image = image
+                        }
+                }
         }
 }
 

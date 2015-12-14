@@ -84,6 +84,113 @@ protocol rmw_event_delegate: class
 {
         func expand_event(event: rmw_event)
 }
+
+class user_events_table_view: events_table_view
+{
+        override init(frame: CGRect, with_search_bar: Bool, event_delegate: rmw_event_delegate)
+        {
+                super.init(frame: frame, with_search_bar: with_search_bar, event_delegate: event_delegate)
+                
+        }
+        
+        override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+        {
+                if section == 0
+                {
+                        return rmw_user.shared_instance.created_events.count
+                }
+                else if section == 1
+                {
+                        return rmw_user.shared_instance.upcoming_events.count
+                }
+                else
+                {
+                        return rmw_user.shared_instance.recent_events.count
+                }
+        }
+        
+        func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
+        {
+                return 40
+        }
+        
+        func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
+        {
+                let label = rmw_label(frame: CGRectMake(padding, padding, self.frame.size.width - padding * 2, 40 - padding * 2))
+                label.textColor = UIColor.dark_gray()
+                label.font = UIFont.systemFontOfSize(14, weight: 1)
+                if section == 0
+                {
+                        label.text = rmw_user.shared_instance.first_name + "'s created events (" + String(rmw_user.shared_instance.created_events.count) + ")"
+                }
+                else if section == 1
+                {
+                        label.text = rmw_user.shared_instance.first_name + "'s upcoming events (" + String(rmw_user.shared_instance.upcoming_events.count) + ")"
+                }
+                else
+                {
+                        label.text = rmw_user.shared_instance.first_name + "'s recent events (" + String(rmw_user.shared_instance.recent_events.count) + ")"
+                }
+                let view = UIView(frame: CGRect.zero(self.frame.size.width, 40))
+                view.addSubview(label)
+                
+                let border = UIView(frame: CGRectMake(0, 40-border_thin_length, self.frame.size.width, border_thin_length))
+                border.backgroundColor = UIColor.border_gray()
+                view.addSubview(border)
+                return view
+        }
+        
+        override func numberOfSectionsInTableView(tableView: UITableView) -> Int
+        {
+                return 3
+        }
+        
+        override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
+        {
+                if events.count == 0
+                {
+                        return super.tableView(tableView, cellForRowAtIndexPath: indexPath)
+                }
+                var cell = self.dequeueReusableCellWithIdentifier(event_cell_identifier, forIndexPath: indexPath) as? event_cell
+                if (cell == nil)
+                {
+                        cell = event_cell(style: .Default, reuseIdentifier: event_cell_identifier)
+                }
+                if let event = self.event(indexPath)
+                {
+                        cell!.update(event)
+                }
+                return cell!
+        }
+        
+        func event(path: NSIndexPath) -> rmw_event?
+        {
+                if path.section == 0
+                {
+                        return rmw_user.shared_instance.created_events[path.row]
+                }
+                else if path.section == 1
+                {
+                        return rmw_user.shared_instance.upcoming_events[path.row]
+                }
+                else
+                {
+                        return rmw_user.shared_instance.recent_events[path.row]
+                }
+        }
+        
+        override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath)
+        {
+                if let event = self.event(indexPath)
+                {
+                        self.event_delegate.expand_event(event)
+                }
+        }
+
+        required init?(coder aDecoder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+}
 class events_table_view: rmw_table_view, UITableViewDataSource
 {
         var events = rmw_ordered_map<Int,rmw_event>()
@@ -91,7 +198,7 @@ class events_table_view: rmw_table_view, UITableViewDataSource
         init(frame: CGRect, with_search_bar: Bool, event_delegate: rmw_event_delegate)
         {
                 self.event_delegate = event_delegate
-                super.init(frame: frame, with_search_bar: true)
+                super.init(frame: frame, with_search_bar: with_search_bar)
                 self.registerClass(event_cell.classForCoder(), forCellReuseIdentifier: event_cell_identifier)
                 self.dataSource = self
                 if self.search_bar != nil
@@ -264,6 +371,7 @@ class rmw_event
         var state: String = ""
         var zip: String = ""
         var organization: String = ""
+        var image_url: String = ""
         
         init?(raw: Dictionary<String, AnyObject>)
         {

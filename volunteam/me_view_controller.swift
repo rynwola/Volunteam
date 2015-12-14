@@ -1,4 +1,5 @@
 import UIKit
+import Alamofire
 
 class rmw_user
 {
@@ -7,7 +8,9 @@ class rmw_user
         var first_name: String = "John"
         var last_name: String = "Doe"
         var image_url: String?
-        var events = [rmw_event]()
+        var created_events = [rmw_event]()
+        var recent_events = [rmw_event]()
+        var upcoming_events = [rmw_event]()
         var hours_goal: Int = 0
         var hours_achieved: Int = 0
         var signed_in: Bool
@@ -42,6 +45,51 @@ class rmw_user
                 {
                         self.last_name = last_name
                 }
+                if let goal_hours = raw["goal_hours"] as? Int
+                {
+                        self.hours_goal = goal_hours
+                }
+                if let acheived_hours = raw["current_hours"] as? Int
+                {
+                        self.hours_achieved = acheived_hours
+                }
+                if let image_url = raw["profile_pic_url"] as? String
+                {
+                        self.image_url = image_url
+                }
+                if let raw_events = raw["created_events"] as? [Dictionary<String,AnyObject>]
+                {
+                        self.created_events.removeAll()
+                        for raw_event in raw_events
+                        {
+                                if let event = rmw_event(raw: raw_event)
+                                {
+                                        self.created_events.append(event)
+                                }
+                        }
+                }
+                if let raw_events = raw["recent_events"] as? [Dictionary<String,AnyObject>]
+                {
+                        self.recent_events.removeAll()
+                        for raw_event in raw_events
+                        {
+                                if let event = rmw_event(raw: raw_event)
+                                {
+                                        self.recent_events.append(event)
+                                }
+                        }
+                }
+                if let raw_events = raw["upcoming_events"] as? [Dictionary<String,AnyObject>]
+                {
+                        self.upcoming_events.removeAll()
+                        for raw_event in raw_events
+                        {
+                                if let event = rmw_event(raw: raw_event)
+                                {
+                                        self.upcoming_events.append(event)
+                                }
+                        }
+                }
                 NSUserDefaults.standardUserDefaults().setObject(raw, forKey: "user_info")
         }
         
@@ -60,7 +108,7 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
         var name_label: rmw_label!
         var goal_view: rmw_goal_view!
         var progress_label: rmw_label!
-        var table_view: events_table_view!
+        var table_view: user_events_table_view!
         var sign_out_button: UIButton!
         
         override func viewDidLoad()
@@ -70,11 +118,19 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
                 
                 image_view = UIImageView(frame: CGRectMake(padding, padding + status_bar_height(), 100, 100))
                 image_view.backgroundColor = UIColor.medium_gray()
-                image_view.image = UIImage(named: "space")
                 image_view.contentMode = UIViewContentMode.ScaleAspectFill
                 image_view.layer.cornerRadius = 4
                 image_view.clipsToBounds = true
                 self.view.addSubview(image_view)
+                
+                if let url = rmw_user.shared_instance.image_url
+                {
+                        Alamofire.request(.GET, url).response() {
+                                (_, _, data, _) in
+                                let image = UIImage(data: data!)
+                                self.image_view.image = image
+                        }
+                }
                 
                 name_label = rmw_label(frame: CGRectMake(image_view.frame.x_end + padding, image_view.frame.origin.y, 100, 100))
                 name_label.text = rmw_user.shared_instance.first_name + " " + rmw_user.shared_instance.last_name
@@ -99,11 +155,11 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
                 }
                 self.goal_view.addSubview(progress_label)
                 
-                table_view = events_table_view(frame: CGRectMake(0, self.goal_view.frame.y_end + post_padding, self.view.frame.size.width, self.view.frame.size.height - (goal_view.frame.y_end + flat_height + self.tabBarController!.tabBar.frame.size.height + post_padding)), with_search_bar: true, event_delegate: self)
+                table_view = user_events_table_view(frame: CGRectMake(0, self.goal_view.frame.y_end + post_padding, self.view.frame.size.width, self.view.frame.size.height - (goal_view.frame.y_end + flat_height + self.tabBarController!.tabBar.frame.size.height + post_padding)), with_search_bar: false, event_delegate: self)
                 table_view.backgroundColor = UIColor.whiteColor()
                 self.view.addSubview(table_view)
                 
-                var border = UIView(frame: CGRectMake(table_view.frame.origin.x, table_view.frame.origin.y, self.view.frame.size.width, border_thin_length))
+                let border = UIView(frame: CGRectMake(table_view.frame.origin.x, table_view.frame.origin.y, self.view.frame.size.width, border_thin_length))
                 border.backgroundColor = UIColor.border_gray()
                 self.view.addSubview(border)
                 
@@ -118,6 +174,14 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
                 self.view.addSubview(sign_out_button)
 
                 
+        }
+        
+        override func viewDidAppear(animated: Bool)
+        {
+                super.viewDidAppear(animated)
+                let user_request = query(.get_user_profile)
+                user_request.delegate = self
+                user_request.ec2_query()
         }
         
         func sign_out()
@@ -140,7 +204,34 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
         
         func manage_response(response_query: query, _ response: Dictionary<String, AnyObject>)
         {
-                
+                if let raw_user = response["user"] as? Dictionary<String, AnyObject>
+                {
+                        if let user = rmw_user(raw: raw_user)
+                        {
+                                rmw_user.shared_instance = user
+                        }
+                }
+                if let url = rmw_user.shared_instance.image_url
+                {
+                        Alamofire.request(.GET, url).response() {
+                                (_, _, data, _) in
+                                let image = UIImage(data: data!)
+                                run_on_main_thread(
+                                {
+                                          self.image_view.image = image
+                                })
+                        }
+                }
+                run_on_main_thread(
+                {
+                        self.table_view.reloadData()
+                        
+                        self.progress_label.text = String(rmw_user.shared_instance.hours_achieved) + " / " + String(rmw_user.shared_instance.hours_goal) + " hours"
+                        
+                        self.name_label.text = rmw_user.shared_instance.first_name + " " + rmw_user.shared_instance.last_name
+                        
+                        self.goal_view.update(rmw_user.shared_instance.percent)
+                })
         }
         
         func failed_response(response_query: query)

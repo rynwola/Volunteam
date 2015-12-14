@@ -4,3 +4,5 @@
 use_frameworks!
 
 pod 'FBSDKCoreKit'
+pod 'Alamofire','~> 3.0'
+
