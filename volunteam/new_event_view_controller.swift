@@ -218,7 +218,10 @@ class full_event_view_controller: UIViewController, query_delegate
                         {
                                 action in
                 }))
-                self.presentViewController(alert, animated: true, completion: nil)
+                run_on_main_thread(
+                {
+                         self.presentViewController(alert, animated: true, completion: nil)
+                })
         }
         
         func failed_response(response_query: query)

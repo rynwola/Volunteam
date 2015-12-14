@@ -35,15 +35,15 @@ enum query_type
         
         var url_string: String!
                 {
-                        let base_string = "http://api.eecs481volunteering1.appspot.com/"
+                        let base_string = "http://api.serveitup481.com/"
                         switch self
                         {
                         case .get_event:
                                 return base_string + "get_event/" //need to get the specific id
                         case .get_events:
-                                return base_string + "events"//"eventslist"
+                                return base_string + "eventslist"//"eventslist"
                         case .log_in:
-                                return base_string + "user/login"
+                                return base_string + "user/loginUser"
                         case .register:
                                 return base_string + "users"
                         case .join_event:

@@ -29,9 +29,11 @@ class rmw_user
         
         init?(raw: Dictionary<String,AnyObject>)
         {
+                var new_dic = Dictionary<String,AnyObject>()
                 if let id = raw["id"] as? Int
                 {
                         self.id = id
+                        new_dic["id"] = id
                 }
                 else
                 {
@@ -40,22 +42,27 @@ class rmw_user
                 if let first_name = raw["first_name"] as? String
                 {
                         self.first_name = first_name
+                        new_dic["first_name"] = first_name
                 }
                 if let last_name = raw["last_name"] as? String
                 {
                         self.last_name = last_name
+                        new_dic["last_name"] = last_name
                 }
                 if let goal_hours = raw["goal_hours"] as? Int
                 {
                         self.hours_goal = goal_hours
+                        new_dic["goal_hours"] = goal_hours
                 }
                 if let acheived_hours = raw["current_hours"] as? Int
                 {
                         self.hours_achieved = acheived_hours
+                        new_dic["current_hours"] = acheived_hours
                 }
                 if let image_url = raw["profile_pic_url"] as? String
                 {
                         self.image_url = image_url
+                        new_dic["profile_pic_url"] = image_url
                 }
                 if let raw_events = raw["created_events"] as? [Dictionary<String,AnyObject>]
                 {
@@ -67,6 +74,7 @@ class rmw_user
                                         self.created_events.append(event)
                                 }
                         }
+                        new_dic["created_events"] = raw_events
                 }
                 if let raw_events = raw["recent_events"] as? [Dictionary<String,AnyObject>]
                 {
@@ -78,6 +86,7 @@ class rmw_user
                                         self.recent_events.append(event)
                                 }
                         }
+                        new_dic["recent_events"] = raw_events
                 }
                 if let raw_events = raw["upcoming_events"] as? [Dictionary<String,AnyObject>]
                 {
@@ -89,8 +98,10 @@ class rmw_user
                                         self.upcoming_events.append(event)
                                 }
                         }
+                        
+                        new_dic["upcoming_events"] = raw_events
                 }
-                NSUserDefaults.standardUserDefaults().setObject(raw, forKey: "user_info")
+                NSUserDefaults.standardUserDefaults().setObject(new_dic, forKey: "user_info")
         }
         
         func reset()

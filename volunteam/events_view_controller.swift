@@ -49,7 +49,7 @@ class events_view_controller: UIViewController, query_delegate, rmw_event_delega
         {
                 
                 print("response: \(response)")
-                if let raw_events = response["events"] as? [Dictionary<String, AnyObject>]
+                if let raw_events = response["results"] as? [Dictionary<String, AnyObject>]
                 {
                         var events = rmw_ordered_map<Int,rmw_event>()
                         for raw_event in raw_events

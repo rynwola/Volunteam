@@ -36,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         }
                 }
                 
-                if true//rmw_user.shared_instance.signed_in
+                if rmw_user.shared_instance.signed_in
                 {
                         if self.tab_controller == nil
                         {
