@@ -295,7 +295,15 @@ class new_event_view_controller: UIViewController, query_delegate
         
         func manage_response(response_query: query, _ response: Dictionary<String, AnyObject>)
         {
-                self.pop()
+                let alert = UIAlertController(title: "Success", message: "The event is made! Have fun!", preferredStyle: UIAlertControllerStyle.Alert)
+                alert.addAction(UIAlertAction(title: "Okay", style: UIAlertActionStyle.Cancel, handler:
+                        {
+                                action in
+                                run_on_main_thread(
+                                        {
+                                                self.pop()
+                                })
+                }))
         }
         
         func failed_response(response_query: query)

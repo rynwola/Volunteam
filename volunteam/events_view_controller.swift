@@ -14,8 +14,11 @@ class events_view_controller: UIViewController, query_delegate, rmw_event_delega
                          self.table_view.reloadData()
                                 })
                 
-
-                
+                self.get_events()
+        }
+        
+        func get_events()
+        {
                 let events_query = query(.get_events)
                 events_query.delegate = self
                 events_query.ec2_query()
@@ -32,6 +35,12 @@ class events_view_controller: UIViewController, query_delegate, rmw_event_delega
                         add_button.addTarget(self, action: "create_event", forControlEvents: UIControlEvents.TouchUpInside)
                 }
                 self.navigationController!.navigationBar.addSubview(add_button)
+        }
+        
+        override func viewDidAppear(animated: Bool)
+        {
+                super.viewDidAppear(animated)
+                self.get_events()
         }
         
         override func viewWillDisappear(animated: Bool)
