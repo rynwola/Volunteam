@@ -51,14 +51,14 @@ enum query_type
                         case .create_event:
                                 return base_string + "events"
                         case .get_user_profile:
-                                return base_string + "user/" + String(user_id)
+                                return base_string + "userList/" + String(user_id)
                         }
         }
         
         
         func url_with_event(id: Int) -> NSURL
         {
-                let base_string = "http://api.eecs481volunteering1.appspot.com/"
+                let base_string = "http://api.serveitup481.com/"
                 let full_string = base_string + "event/" + String(id) + "/" + String(user_id)
                 return NSURL(string: full_string)!
         }

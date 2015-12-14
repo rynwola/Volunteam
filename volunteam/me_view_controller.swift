@@ -74,7 +74,6 @@ class rmw_user
                                         self.created_events.append(event)
                                 }
                         }
-                        new_dic["created_events"] = raw_events
                 }
                 if let raw_events = raw["recent_events"] as? [Dictionary<String,AnyObject>]
                 {
@@ -86,7 +85,6 @@ class rmw_user
                                         self.recent_events.append(event)
                                 }
                         }
-                        new_dic["recent_events"] = raw_events
                 }
                 if let raw_events = raw["upcoming_events"] as? [Dictionary<String,AnyObject>]
                 {
@@ -98,10 +96,9 @@ class rmw_user
                                         self.upcoming_events.append(event)
                                 }
                         }
-                        
-                        new_dic["upcoming_events"] = raw_events
                 }
                 NSUserDefaults.standardUserDefaults().setObject(new_dic, forKey: "user_info")
+                NSUserDefaults.standardUserDefaults().synchronize()
         }
         
         func reset()
@@ -127,7 +124,7 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
                 super.viewDidLoad()
                 self.view.backgroundColor = UIColor.light_gray()
                 
-                image_view = UIImageView(frame: CGRectMake(padding, padding + status_bar_height(), 100, 100))
+                image_view = UIImageView(frame: CGRectMake(padding, padding + status_bar_height() + self.navigationController!.navigationBar.frame.size.height, 100, 100))
                 image_view.backgroundColor = UIColor.medium_gray()
                 image_view.contentMode = UIViewContentMode.ScaleAspectFill
                 image_view.layer.cornerRadius = 4
@@ -187,6 +184,11 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
                 
         }
         
+        func expand_event(event: rmw_event)
+        {
+                self.navigationController!.pushViewController(full_event_view_controller(event: event), animated: true)
+        }
+        
         override func viewDidAppear(animated: Bool)
         {
                 super.viewDidAppear(animated)
@@ -206,11 +208,6 @@ class me_view_controller: UIViewController, query_delegate, rmw_event_delegate
                         })
                 })
                 print("sign out")
-        }
-        
-        func expand_event(event: rmw_event)
-        {
-                
         }
         
         func manage_response(response_query: query, _ response: Dictionary<String, AnyObject>)

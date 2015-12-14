@@ -225,7 +225,7 @@ class empty_cell: UITableViewCell
                 self.selectionStyle = .None
                 
                 title_label = rmw_label()
-                title_label.frame = CGRectMake(padding * 2, padding, screen_size().width-padding*4, screen_size().width/6)
+                title_label.frame = CGRectMake(padding * 2, padding, screen_size().width-padding*4, 30)
                 title_label.textAlignment = .Center
                 title_label.textColor = .dark_gray()
                 self.contentView.addSubview(title_label)
@@ -233,6 +233,7 @@ class empty_cell: UITableViewCell
                 message_label = rmw_label()
                 message_label.frame = CGRectMake(self.title_label.frame.origin.x, self.title_label.frame.y_end+post_padding, self.title_label.frame.size.width, title_label.frame.size.height)
                 message_label.textAlignment = .Center
+                message_label.frame.origin.y = title_label.frame.y_end
                 self.contentView.addSubview(message_label)
         }
         

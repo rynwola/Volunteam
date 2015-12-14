@@ -90,11 +90,15 @@ class user_events_table_view: events_table_view
         override init(frame: CGRect, with_search_bar: Bool, event_delegate: rmw_event_delegate)
         {
                 super.init(frame: frame, with_search_bar: with_search_bar, event_delegate: event_delegate)
-                
+                self.backgroundColor = UIColor.whiteColor()
         }
         
         override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
         {
+                if rmw_user.shared_instance.created_events.count == 0 && rmw_user.shared_instance.recent_events.count == 0 && rmw_user.shared_instance.upcoming_events.count == 0 && section == 0
+                {
+                        return 1
+                }
                 if section == 0
                 {
                         return rmw_user.shared_instance.created_events.count
@@ -132,6 +136,7 @@ class user_events_table_view: events_table_view
                         label.text = rmw_user.shared_instance.first_name + "'s recent events (" + String(rmw_user.shared_instance.recent_events.count) + ")"
                 }
                 let view = UIView(frame: CGRect.zero(self.frame.size.width, 40))
+                view.backgroundColor = UIColor.whiteColor()
                 view.addSubview(label)
                 
                 let border = UIView(frame: CGRectMake(0, 40-border_thin_length, self.frame.size.width, border_thin_length))
@@ -147,7 +152,7 @@ class user_events_table_view: events_table_view
         
         override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
         {
-                if events.count == 0
+                if rmw_user.shared_instance.created_events.count == 0 && rmw_user.shared_instance.recent_events.count == 0 && rmw_user.shared_instance.upcoming_events.count == 0
                 {
                         return super.tableView(tableView, cellForRowAtIndexPath: indexPath)
                 }
